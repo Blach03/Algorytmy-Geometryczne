@@ -1,0 +1,131 @@
+def find_neighbors(vertex_index, triangles):
+    neighbors_one_layer = set()
+    neighbors_two_layers = set()
+
+    # Znajdowanie otoczenia jednowarstwowego
+    for triangle in triangles:
+        if vertex_index in triangle:
+            neighbors_one_layer.update(triangle)
+            vis.add_line_segment([vertices[triangle[0]], vertices[triangle[1]]], color = 'red')
+            vis.add_line_segment([vertices[triangle[0]], vertices[triangle[2]]], color = 'red')
+            vis.add_line_segment([vertices[triangle[2]], vertices[triangle[1]]], color = 'red')
+
+    neighbors_one_layer.remove(vertex_index)
+
+    # Znajdowanie otoczenia dwuwarstwowego
+    for neighbor in neighbors_one_layer:
+        for triangle in triangles:
+            if neighbor in triangle and vertex_index not in triangle:
+                neighbors_two_layers.update(triangle)
+                vis.add_line_segment([vertices[triangle[0]], vertices[triangle[1]]], color = 'orange')
+                vis.add_line_segment([vertices[triangle[0]], vertices[triangle[2]]], color = 'orange')
+                vis.add_line_segment([vertices[triangle[2]], vertices[triangle[1]]], color = 'orange')
+
+    neighbors_two_layers -= neighbors_one_layer
+    neighbors_two_layers.discard(vertex_index)
+
+    return list(neighbors_one_layer), list(neighbors_two_layers)
+
+
+# Przykładowe dane wejściowe
+vertices = points4
+
+triangles = triangulation4
+
+vis = Visualizer()
+vis.clear()
+triangulation = triangles
+points = vertices
+polygon = convert_to_lines(points)
+vis.add_line_segment(polygon)
+for triangle in triangulation:
+    add = [points[triangle[0]], points[triangle[1]], points[triangle[2]]]
+    lines = convert_to_lines(add)
+    vis.add_line_segment(lines)
+
+# Wyznaczanie otoczenia dla wybranego wierzchołka (np. wierzchołek o indeksie 6)
+selected_vertex = 5
+one_layer_neighbors, two_layers_neighbors = find_neighbors(selected_vertex, triangles)
+
+vis.add_point(vertices[selected_vertex], color = "black")
+for point in one_layer_neighbors:
+    vis.add_point(vertices[point],color = "green")
+for point in two_layers_neighbors:
+    vis.add_point(vertices[point],color = "lime")  
+
+
+vis.show()
+
+
+# Wyświetlanie wyników
+print(f"Otoczenie jednowarstwowe wierzchołka {selected_vertex}: {one_layer_neighbors}")
+print(f"Otoczenie dwuwarstwowe wierzchołka {selected_vertex}: {two_layers_neighbors}")
+
+
+
+def are_triangles_incident(triangle1, triangle2):
+    common_vertices = set(triangle1) & set(triangle2)
+    return len(common_vertices) > 1
+
+
+def find_triangle_neighbors(selected_triangle, triangles):
+    neighbors_one_layer = set()
+    neighbors_two_layers = set()
+
+    # Znajdowanie otoczenia jednowarstwowego
+    for triangle in triangles:
+        if selected_triangle != triangle and are_triangles_incident(selected_triangle, triangle):
+            neighbors_one_layer.add(triangle)
+
+    # Znajdowanie otoczenia dwuwarstwowego
+    for neighbor_triangle in neighbors_one_layer:
+        for triangle in triangles:
+            if triangle != selected_triangle and triangle != neighbor_triangle and are_triangles_incident(neighbor_triangle, triangle):
+                neighbors_two_layers.add(triangle)
+
+    
+
+    return list(neighbors_one_layer), list(neighbors_two_layers)
+
+
+# Przykładowe dane wejściowe
+triangles = triangulation4
+
+# Wyznaczanie otoczenia dla wybranego trójkąta (np. trójkąta (1, 2, 6))
+selected_triangle = (5, 4, 9)
+one_layer_neighbors, two_layers_neighbors = find_triangle_neighbors(selected_triangle, triangles)
+
+vis = Visualizer()
+vis.clear()
+triangulation = triangles
+points = vertices
+polygon = convert_to_lines(points)
+vis.add_line_segment(polygon)
+for triangle in triangulation:
+    add = [points[triangle[0]], points[triangle[1]], points[triangle[2]]]
+    lines = convert_to_lines(add)
+    vis.add_line_segment(lines)
+tri=[]
+for p in selected_triangle:
+    tri.append(vertices[p])
+vis.add_polygon(tri,  color = "red")
+
+
+for triang in one_layer_neighbors:
+    tri=[]
+    for p in triang:
+        tri.append(vertices[p])
+    vis.add_polygon(tri,  color = "orange")
+
+
+for triang in two_layers_neighbors:
+    tri=[]
+    for p in triang:
+        tri.append(vertices[p])
+    vis.add_polygon(tri,  color = "yellow")
+
+vis.show()
+# Wyświetlanie wyników
+print(f"Otoczenie jednowarstwowe trójkąta {selected_triangle}: {one_layer_neighbors}")
+print(f"Otoczenie dwuwarstwowe trójkąta {selected_triangle}: {two_layers_neighbors}")
+
